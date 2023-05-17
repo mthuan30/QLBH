@@ -2,9 +2,9 @@ from django import forms
 from django.db import models
 from django.contrib.auth.forms import UserCreationForm,UserChangeForm
 from django.contrib.auth.models import User
-from django.db.models import Sum, F, ExpressionWrapper
 from django.db.models import Sum
 
+from django.contrib.auth.forms import SetPasswordForm
 # Create your models here.
 # Tài khoản
 class Thongtin(models.Model):
@@ -12,7 +12,9 @@ class Thongtin(models.Model):
     sdt=models.CharField(max_length=20,null=True) 
     diachi=models.CharField(max_length=100,null=True) 
     tenquan=models.CharField(max_length=50,null=True)
-    
+class CustomSetPasswordForm(SetPasswordForm):
+    new_password1=forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control','placeholder':'Mật khẩu mới'}))
+    new_password2 = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control','placeholder':'Xác nhận mật khẩu'}))
 class TTForm(forms.ModelForm):
     sdt=forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'})) 
     diachi=forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'})) 

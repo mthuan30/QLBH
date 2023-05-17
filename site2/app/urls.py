@@ -23,4 +23,5 @@ urlpatterns = [
     path('sualoaimon/<int:loai_id>/', views.sualoai,name="sualoai"),
     path('thongtinnhaphang/', views.ttnhaphang,name="nhaphang"),
     path('thanhtoanmomo/', views.thanhtoanmomo,name="momo"),
+    path('datlaimatkhau/<int:user_id>/<str:token>/', views.datlaimatkhau,name="datlaimatkhau"),
 ]

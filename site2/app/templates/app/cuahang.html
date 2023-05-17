@@ -30,7 +30,7 @@
 
           <div id="cuahang" class="container tab-pane active"><br>
             <div class="row">
-            <div class="col-sm-9">
+            <div class="col-sm-8">
                 <ul class="nav nav-pills" role="tablist">
                     <li class="nav-item">
                       <a class="nav-link active" data-bs-toggle="tab" href="#{{loaimons.0.id}}">{{loaimons.0.tenloai}}</a>
@@ -49,13 +49,11 @@
                           {% if loaimons.0 == thucdon.loaimon %}
                               <div class="col-md-3">
                                 <div class="card">
-                                  <img src="/img/{{thucdon.anh}}" style="width:180px;height:150px;" class="card-img-top" alt="...">
+                                  <img src="/img/{{thucdon.anh}}" style="width:160px;height:130px;" class="card-img-top" alt="...">
                                 <div class="card-body text-center alert alert-primary">
                                   <h5 class="card-title">{{thucdon.tenmon}}</h5>
                                   <p class="card-text"><span class='text'>{{thucdon.giatien | floatformat:3}} VND</span></p>
                                   <button type="submit" method="post" name="themgoimon" data-goimon-id="{{thucdon.id}}" class="btn btn-primary goimon">Thêm</button>
-
-                                  
                                 </div>
                                 </div>
                               </div>
@@ -64,71 +62,73 @@
                         {% endfor %}   
                     </div>
                     </div>
-
-
                     {% for loaimon in loaimons|slice:"1:" %}
                     <div id="{{loaimon.id}}" class="container tab-pane fade"><br>
-                        <div class="row">  
-                          {% for thucdon in thucdons %}
-                          {% if loaimon == thucdon.loaimon %}
-                          <form method="POST">
-                              <div class="col-md-3">
-                                <div class="card">
-                                  <img src="/img/{{thucdon.anh}}" class="card-img-top" alt="...">
-                                <div class="card-body text-center alert alert-primary">
-                                  <h5 class="card-title">{{thucdon.tenmon}}</h5>
-                                  <p class="card-text"><span class='text'>{{thucdon.giatien | floatformat:3}} VND</span></p>
-                                  <button type="submit" name="themgoimon" data-goimon-id="{{thucdon.id}}" class="btn btn-primary goimon">Thêm</button>
-                                </div>
-                                </div>
+                      <div class="row">  
+                      {% for thucdon in thucdons %}
+                        {% if loaimon == thucdon.loaimon %}
+                            <div class="col-md-3">
+                              <div class="card">
+                                <img src="/img/{{thucdon.anh}}" style="width:160px;height:130px;" class="card-img-top" alt="...">
+                              <div class="card-body text-center alert alert-primary">
+                                <h5 class="card-title">{{thucdon.tenmon}}</h5>
+                                <p class="card-text"><span class='text'>{{thucdon.giatien | floatformat:3}} VND</span></p>
+                                <button type="submit" method="post" name="themgoimon" data-goimon-id="{{thucdon.id}}" class="btn btn-primary goimon">Thêm</button>
                               </div>
-                            </form>
-                            
-                              {% else %}
-                          {% endif %}
-                        {% endfor %}     
-                    </div>
-                    </div>
+                              </div>
+                            </div>
+                            {% else %}
+                        {% endif %}
+                      {% endfor %}   
+                  </div>
+                  </div>
                     {% endfor %}
                     
                     
-                    
                   </div>
+             
                 
             </div>
-            <div class="col-sm-3">
+            <div class="col-sm-4">
                   <!-- Tab panes -->
-                  
                       <h3>Gọi món</h3>
-                      
                       <div class="row">
-                      
                       <hr>
                    <div class="row">
-                    <div class="col-5">
+                    <div class="col-4">
                         <span>Tên món</span>
                     </div>
-                    <div class="col-3">
+                    <div class="col-2">
                       <span>SL</span>
                   </div>
                     <div class="col-4">
                         <span>Giá tiền</span>
                     </div>
+                    <div class="col-2">
+                      <span>Xóa</span>
+                  </div>
                 </div>
                    <hr>
                    {% if goimons %}
                     {% for goimon in goimons %}
                    <div class="row">
                     
-                    <div class="col-5">
+                    <div class="col-4">
                         <span>{{ forloop.counter }}. {{goimon.mon.tenmon}}</span>
                     </div>
-                    <div class="col-3">
+                    <div class="col-2">
                       <span>{{goimon.soluong}}</span>
                   </div>
                     <div class="col-4">
                         <span>{{goimon.gia|floatformat:3}}</span>
                     </div>
+                    <div class="col-2">
+                      <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="xoagoimon" value="{{goimon.id}}">
+                      <button type="submit" name="xoagoimonbt" class="btn btn-danger xoadonhangname">Xóa</button>
+                      </form>
+                  </div>
                     </div>
                     {% endfor %}
                     {% endif %}

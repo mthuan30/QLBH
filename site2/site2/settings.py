@@ -29,16 +29,17 @@ DEBUG = True
 ENCODING = 'utf-8'
 ALLOWED_HOSTS = []
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'your_smtp_host'
+EMAIL_HOST = 'smtp.office365.com'
 EMAIL_PORT = 587
+EMAIL_HOST_USER = 'thoidailamvua@gmail.com'
+EMAIL_HOST_PASSWORD = 'Thuan123@'
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'kiriharu17@gmail.com'
-EMAIL_HOST_PASSWORD = 'xaolin123456'
+DEFAULT_FROM_EMAIL = 'thoidailamvua@gmail.com'
 
 # Application definition
 
 INSTALLED_APPS = [
-    
+    'django.contrib.humanize',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

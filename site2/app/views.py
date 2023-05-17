@@ -12,8 +12,10 @@ from django.contrib import messages
 from django.utils.crypto import get_random_string
 from datetime import datetime
 from django.utils import timezone
-from django.db.models import Count 
+from django.contrib.auth.hashers import check_password
 import qrcode
+from django.urls import reverse
+from django.contrib.auth.tokens import default_token_generator
 # Create your views here.
 #Đăng nhập
 def loginPage(request):
@@ -80,36 +82,74 @@ def quenmk(request):
         email = request.POST['email']
         try:
             user = User.objects.get(email=email)
-            new_password = get_random_string(length=8)
-            user.set_password(new_password)
-            user.save()
+            token = default_token_generator.make_token(user)
+            reset_url = request.build_absolute_uri(reverse('datlaimatkhau', args=[user.id, token]))
+
             send_mail(
                 'Reset Password',
-                f'Your new password is {new_password}',
-                'your_email_address',
+                f'Please click the following link to reset your password: {reset_url}',
+                'thoidailamvua@gmail.com',
                 [email],
                 fail_silently=False,
             )
-            messages.success(request, 'Please check your email for new password')
+
+            messages.success(request, 'Please check your email for instructions to reset your password.')
             return redirect('login')
         except User.DoesNotExist:
-            messages.error(request, 'User does not exist with this email')
+            messages.success(request, 'Please check your email for instructions to reset your password.')
+    
     return render(request, 'app/quenmk.html')
+def datlaimatkhau(request,user_id,token):
+    
+    
+    user = User.objects.get(pk=user_id)
+    
+    if default_token_generator.check_token(user, token):
+        if request.method == 'POST':
+            form = CustomSetPasswordForm(user, request.POST)
+            if form.is_valid():
+                # Lưu mật khẩu mới vào cơ sở dữ liệu
+                form.save()
+                return redirect('login')
+            else:
+                print(request.POST)
+                print(form.errors)
+                return redirect('register')
+        else:
+            form = CustomSetPasswordForm(user)
+
+        return render(request, 'app/datlaimk.html', {'form': form})
+    else:
+        return redirect('register')
 #Trang chủ
 def home(request):
     if request.user.is_authenticated:
+        er=""
+        user=request.user
         thongtin = Thongtin.objects.get_or_create(user=request.user)
         thongtin = get_object_or_404(Thongtin,user=request.user)
+        if request.method=='POST':
+            form=CustomSetPasswordForm(user,request.POST)
+            
+            if form.is_valid():
+                kt=check_password(request.POST['oldpass'],user.password)
+                if kt==True:
+                    form.save()
+                    return redirect('home')
+                else:
+                    er="Mật khẩu cũ không chính xác"
+        else:
+            form=CustomSetPasswordForm(user)
         if thongtin:
             sdt=thongtin.sdt
             diachi=thongtin.diachi
             tenquan=thongtin.tenquan
             email = request.user.email
             fullname=request.user.get_full_name()
-            context={'email':email,'ten':fullname,'sdt':sdt,'diachi':diachi,'tenquan':tenquan}
+            context={'email':email,'ten':fullname,'sdt':sdt,'diachi':diachi,'tenquan':tenquan,'form':form,'er':er}
             return render(request,'app/home.html',context)
         else:
-            context={}
+            context={'form':form,'er':er}
             return render(request,'app/home.html',context)
     else:
         return redirect('login')
@@ -183,7 +223,16 @@ def cuahang(request):
                 nhanvien.save()
                 cacu.delete()
                 return redirect('cuahang')
-
+            elif 'xoagoimonbt' in request.POST:
+                idgm=request.POST.get('xoagoimon',None)
+                gm=Goimon.objects.get(user=user,pk=idgm)
+                gm.soluong-=1
+                if gm.soluong==0:
+                    gm.delete()
+                else:
+                    gm.save()
+                return redirect('cuahang')
+                
         goimons=Goimon.objects.filter(user=user)
         nhanvienins=Nhanvien.objects.filter(user=user,danglam=False)
         nhanvienouts=Nhanvien.objects.filter(user=user,danglam=True)
@@ -246,14 +295,7 @@ def thucdon(request):
                 else:
                     er="Nên thêm loại trước"
             #Sửa thông tin của loại món       
-            elif 'sualoai' in request.POST:
-                objloai= Loaimon.objects.get(user=request.user,id=request.POST['sua-loai'])
-                sualoai=LoaiForm(request.POST or None,instance=objloai)
-                if form.is_valid():
-                    sualoai.save()
-                    return redirect('thucdon')
-                else:
-                    return redirect('cuahang')
+
             elif 'xoaloai' in request.POST:
                 id=request.POST['xoa-loai']
                 obj = Loaimon.objects.get(user=user,pk=id)
@@ -284,8 +326,11 @@ def suamon(request,monan_id):
         monan = get_object_or_404(Thucdon, user=user,pk=monan_id)
         loaimons=""
         if request.method == 'POST':
+            loai=request.POST['loaimon-select']
             formnvl=MonForm(request.POST or None,instance=monan)
             if formnvl.is_valid():
+                monan.loaimon_id=loai
+                monan.save()
                 formnvl.save()
                 return redirect('thucdon')
         else:
@@ -347,21 +392,24 @@ def thanhtoan(request):
             return redirect('cuahang')
     else:
         return redirect('login')
-def thanhtoanmomo():
-    profile_url = f'https://www.facebook.com/profile.php?id=100009327356134'
-    
+def thanhtoanmomo(request):
+    data = f"https://momo.vn/payment?phone={'0857899148'}&amount={10000}"
+
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_L,
         box_size=10,
         border=4,
     )
-    qr.add_data(profile_url)
+    qr.add_data(data)
     qr.make(fit=True)
-
+    
+    # Tạo hình ảnh QR code
     qr_image = qr.make_image(fill_color="black", back_color="white")
-    qr_image.show()
-
+    
+    # Lưu hình ảnh QR code vào file
+    qr_image.save('app/static/img/qrcode.png')
+    return render(request, 'app/thanhtoanmomo.html')
 
 #Xử lý QL nhân viên
 def nhanvien(request):
@@ -450,7 +498,7 @@ def doanhthu(request):
                     CtDonhang.objects.filter(donhang__thoigiantao__month=thang)
                     .select_related('mon')
                     .values('mon_id', 'mon__tenmon','mon__anh')
-                    .annotate(sold_count=Count('mon_id'))
+                    .annotate(sold_count=Sum('soluong'))
                     .order_by('-sold_count')[:10])
                 
                 
@@ -493,18 +541,23 @@ def khohang(request):
                             tt.save()
                             return redirect('khohang')
                 else:
-                    hang=Khohang.objects.get(user=request.user,pk=request.POST['ma'])
-                    slmoi=int(request.POST['soluongmoi'])
-                    hang.soluong+=slmoi
-                    tt=ThongtinKho(
+                    
+                    if Khohang.objects.filter(user=request.user,pk=request.POST.get('ma')).exists():
+                        hang=Khohang.objects.get(user=request.user,pk=request.POST['ma'])
+                        slmoi=int(request.POST['soluongmoi'])
+                        hang.soluong+=slmoi
+                        tt=ThongtinKho(
                             user=user,
                             nvl=hang,
                             soluongnhap=slmoi,
                             kieunhap="Thêm số lượng",
                             ngaynhap=datetime.now()
                         )
-                    hang.save()
-                    tt.save()
+                        hang.save()
+                        tt.save()
+                        
+                    else:
+                        er="Loại nguyên liệu không tồn tại"
                     return redirect('khohang')
             elif 'xoakho' in request.POST:
                 id=request.POST['xoa-kho']

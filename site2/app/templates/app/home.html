@@ -28,12 +28,52 @@
       <span class="input-group-text">Tên quán</span>
       <span class="form-control">{{tenquan}}</span>
   </div>
-      <div class="col-lg-3 ">
+      <div class="col-5">
+        <div class="row">
+          <div class="col">
         <a href="{% url 'sua' %}" value="Chỉnh sửa thông tin" class="btn-success btn btn-block col-lg-10">Chỉnh sửa thông tin</a>
-        
+          </div>
+          <div class="col">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#myModalDoimatkhau">Đổi mật khẩu</button>
+        </div>
+      </div>
       </div>
     </div>
     
   
 </div>
+<div class="modal fade" id="myModalDoimatkhau">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h4 class="modal-title">Đổi mật khẩu( để đảm bảo an toàn người dùng cần đăng nhập lại sau khi đổi mật khẩu)</h4>
+        {% if er %}
+        {{er}}
+         {% endif %}
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <!-- Modal body -->
+<div class="modal-body">
+<form id="xoakho" class="md-6 p-3 mg-3 form" method="post">
+{% csrf_token %}
+  <input type="password" class="form-control" name="oldpass" placeholder="Nhập lại mật khẩu cũ">
+  {{form.new_password1}}
+  {{form.new_password2}}
+
+  <div class="modal-footer">
+    <button type="submit" name="doimatkhau" class="btn btn-success " data-bs-dismiss="modal">Có</button>
+  <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Không</button>
+  </div>
+</form>
+</div>
+  
+  </div>
+  </div>
+</div>
+      <!-- Modal footer -->
+      
+      </div>
+      </div>
+      </div>
 {% endblock main-content %}
